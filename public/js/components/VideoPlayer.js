@@ -34,6 +34,8 @@ class VideoPlayer {
         if (this.video) {
             this.video.setAttribute('playsinline', '');
             this.video.setAttribute('webkit-playsinline', '');
+            // Let Safari offer this stream to AirPlay receivers
+            this.video.setAttribute('x-webkit-airplay', 'allow');
         }
 
         this.container = document.querySelector('.video-container');
@@ -350,6 +352,22 @@ class VideoPlayer {
             e.stopPropagation();
             this.togglePictureInPicture();
         });
+
+        // AirPlay (Safari only). The button stays hidden until Safari tells us a
+        // receiver is actually reachable, so it never shows up as a dead control.
+        const btnAirplay = document.getElementById('btn-airplay');
+        if (btnAirplay && this.video && window.WebKitPlaybackTargetAvailabilityEvent) {
+            this.video.addEventListener('webkitplaybacktargetavailabilitychanged', (e) => {
+                btnAirplay.hidden = e.availability !== 'available';
+            });
+            this.video.addEventListener('webkitcurrentplaybacktargetiswirelesschanged', () => {
+                btnAirplay.classList.toggle('active', this.video.webkitCurrentPlaybackTargetIsWireless);
+            });
+            btnAirplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.video.webkitShowPlaybackTargetPicker();
+            });
+        }
 
         // Overflow Menu
         const btnOverflow = document.getElementById('btn-overflow');
@@ -984,37 +1002,8 @@ class VideoPlayer {
 
                 // Load HLS
                 this.updateNowPlaying(channel, 'Transcoding (Video)');
-                // ... (rest is same logic flow, simplified by just falling through to playHls call if I refactored)
-                // But for minimize drift, I'll copy the block logic for HLS playback init
-                // Actually, I can just fall through if I set looksLikeHls = true?
-                // No, play logic is sequential.
-                if (Hls.isSupported()) {
-                    // Start HLS
-                    // ... this repeats code. I should probably just set currentUrl and let HLS block handle?
-                    // But HLS block is lower down.
-                    // I will just execute the HLS init here as before.
-
-                    // Actually, easiest way is to re-assign streamUrl and goto start? No.
-                    // Copy existing forceTranscode block logic
-                    if (this.hls) {
-                        this.hls.destroy();
-                    }
-                    this.hls = new Hls();
-                    this.hls.loadSource(playlistUrl);
-                    this.hls.attachMedia(this.video);
-                    this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        this.video.play().catch(console.error);
-                    });
-                    // Handle errors
-                    this.hls.on(Hls.Events.ERROR, (event, data) => {
-                        if (data.fatal) {
-                            console.log('[Player] HLS fatal error');
-                            this.hls.destroy();
-                        }
-                    });
-
-                    return; // Exit
-                }
+                this.playHls(playlistUrl);
+                return;
             }
 
             // CHECK: Force Audio Transcode (Copy Video) - legacy forceTranscode setting
@@ -1211,6 +1200,18 @@ class VideoPlayer {
     playHls(url) {
         if (this.hls) {
             this.hls.destroy();
+            this.hls = null;
+        }
+
+        // Safari: play natively. Besides handling more codecs, this is what makes
+        // AirPlay possible at all - AirPlay cannot mirror MSE/HLS.js playback,
+        // because the receiver needs a real URL rather than a blob: MediaSource.
+        if (prefersNativeHls(this.video)) {
+            this.video.src = url;
+            this.video.play().catch(e => {
+                if (e.name !== 'AbortError') console.log('Autoplay prevented:', e);
+            });
+            return;
         }
 
         this.hls = new Hls(this.getHlsConfig());

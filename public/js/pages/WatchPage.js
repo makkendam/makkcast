@@ -573,6 +573,17 @@ class WatchPage {
     playHls(url) {
         if (this.hls) {
             this.hls.destroy();
+            this.hls = null;
+        }
+
+        // Safari: play natively so AirPlay stays available (AirPlay cannot send
+        // MSE/HLS.js playback to a receiver - it needs a real URL, not a blob:).
+        if (prefersNativeHls(this.video)) {
+            this.video.src = url;
+            this.video.play().catch(e => {
+                if (e.name !== 'AbortError') console.error('[WatchPage] Autoplay error:', e);
+            });
+            return;
         }
 
         this.hls = new Hls({

@@ -232,6 +232,12 @@
                       </div>
                     </div>
 
+                    <!-- Only revealed when Safari reports an AirPlay receiver on the network -->
+                    <button class="watch-btn" id="btn-airplay" title="AirPlay" hidden>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
+                        <path d="M6 22h12l-6-6-6 6zM21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v-2H3V5h18v12h-4v2h4c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+                      </svg>
+                    </button>
                     <button class="watch-btn" id="btn-pip" title="Picture-in-Picture">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
                         <path
@@ -1097,7 +1103,7 @@
   <!-- JavaScript -->
   <script src="/js/icons.js"></script>
   <script src="/js/api.js?v=2"></script>
-  <script src="/js/components/VideoPlayer.js?v=3"></script>
+  <script src="/js/components/VideoPlayer.js?v=4"></script>
   <script src="/js/components/ChannelList.js?v=3"></script>
   <script src="/js/components/SourceManager.js?v=2"></script>
   <script src="/js/components/EpgGuide.js?v=2"></script>
@@ -1107,7 +1113,7 @@
   <script src="/js/pages/MoviesPage.js?v=4"></script>
   <script src="/js/pages/SeriesPage.js?v=1"></script>
   <script src="/js/pages/Settings.js?v=2"></script>
-  <script src="/js/pages/WatchPage.js?v=2"></script>
+  <script src="/js/pages/WatchPage.js?v=3"></script>
   <script src="/js/app.js?v=4"></script>
   <script>
     // Check for SSO token in URL
