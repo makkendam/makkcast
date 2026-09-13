@@ -724,6 +724,21 @@ body.resizing-sidebar * {
   text-overflow: ellipsis;
 }
 
+/* Shown on channels grouped from multiple quality feeds (see ChannelQuality) -
+   names the quality currently selected as default; the player's quality
+   switcher is where it actually gets changed. */
+.channel-quality-tag {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  padding: 1px 5px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+}
+
 .channel-program {
   font-size: 0.75rem;
   color: var(--color-text-muted);

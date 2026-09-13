@@ -340,6 +340,26 @@ class VideoPlayer {
             }
         });
 
+        // Quality switcher (only for channels grouped from multiple quality feeds)
+        this.qualityWrapper = document.getElementById('player-quality-wrapper');
+        this.qualityBtn = document.getElementById('player-quality-btn');
+        this.qualityMenu = document.getElementById('player-quality-menu');
+        this.qualityList = document.getElementById('player-quality-list');
+        this.qualityMenuOpen = false;
+
+        this.qualityBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleQualityMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (this.qualityMenuOpen &&
+                !this.qualityMenu.contains(e.target) &&
+                !this.qualityBtn.contains(e.target)) {
+                this.closeQualityMenu();
+            }
+        });
+
         // Fullscreen
         btnFullscreen?.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -562,6 +582,90 @@ class VideoPlayer {
         if (!this.captionsMenu) return;
         this.captionsMenuOpen = false;
         this.captionsMenu.classList.add('hidden');
+    }
+
+    /**
+     * Toggle the quality switcher menu
+     */
+    toggleQualityMenu() {
+        if (!this.qualityMenu) return;
+        this.qualityMenuOpen = !this.qualityMenuOpen;
+        this.qualityMenu.classList.toggle('hidden', !this.qualityMenuOpen);
+    }
+
+    closeQualityMenu() {
+        if (!this.qualityMenu) return;
+        this.qualityMenuOpen = false;
+        this.qualityMenu.classList.add('hidden');
+    }
+
+    /**
+     * Show/hide the quality button and (re)build its menu for the channel
+     * currently loaded. Called from play() on every channel change - a plain
+     * (non-grouped) channel has no `qualityVariants`, so the control stays
+     * hidden for the vast majority of channels.
+     */
+    updateQualityMenu() {
+        if (!this.qualityWrapper || !this.qualityList) return;
+
+        const variants = this.currentChannel?.qualityVariants;
+        if (!variants || variants.length < 2) {
+            this.qualityWrapper.hidden = true;
+            this.closeQualityMenu();
+            return;
+        }
+
+        // A quality switch replays play() with a clone carrying activeStreamId
+        // (see switchQuality below) - fall back to streamId for the initial,
+        // not-yet-switched load.
+        const activeId = this.currentChannel.activeStreamId ?? this.currentChannel.streamId;
+
+        this.qualityWrapper.hidden = false;
+        this.qualityList.innerHTML = variants.map(v => `
+            <button class="captions-option ${String(v.streamId) === String(activeId) ? 'active' : ''}"
+                    data-stream-id="${v.streamId}">${v.label}</button>
+        `).join('');
+
+        this.qualityList.querySelectorAll('.captions-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.switchQuality(btn.dataset.streamId);
+                this.closeQualityMenu();
+            });
+        });
+    }
+
+    /**
+     * Switch to a sibling quality variant of the currently playing channel.
+     * Re-runs the normal play() pipeline (probing, transcode decision, Safari
+     * native-HLS handling, ...) against the new stream - it's simplest and
+     * safest to reuse that rather than duplicate its codec/error handling.
+     * The channel's own id/streamId/tvgId are left untouched, so favorites,
+     * hidden state, EPG and channel-up/down navigation - all keyed on those -
+     * keep referring to the same logical channel regardless of which quality
+     * is actually playing.
+     */
+    async switchQuality(streamId) {
+        const channel = this.currentChannel;
+        if (!channel?.qualityVariants) return;
+
+        const variant = channel.qualityVariants.find(v => String(v.streamId) === String(streamId));
+        if (!variant) return;
+
+        try {
+            const streamFormat = this.settings.streamFormat || 'm3u8';
+            const result = await API.proxy.xtream.getStreamUrl(channel.sourceId, variant.streamId, 'live', streamFormat);
+
+            if (channel.qualityGroupKey) {
+                ChannelQuality.setPreferredStreamId(channel.sourceId, channel.qualityGroupKey, variant.streamId);
+            }
+
+            // Clone with activeStreamId so updateQualityMenu() highlights the
+            // chosen variant, while id/streamId/tvgId stay frozen to the
+            // group's default (favorites/hidden/EPG/nav are keyed on those).
+            await this.play({ ...channel, activeStreamId: variant.streamId }, result.url);
+        } catch (err) {
+            console.error('[Player] Quality switch failed:', err);
+        }
     }
 
     /**
@@ -888,6 +992,7 @@ class VideoPlayer {
      */
     async play(channel, streamUrl) {
         this.currentChannel = channel;
+        this.updateQualityMenu();
 
         try {
             // Stop any WatchPage playback (movies/series) before starting Live TV

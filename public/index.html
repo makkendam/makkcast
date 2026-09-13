@@ -10,7 +10,7 @@
   <title>nodecast-tv | IPTV Player</title>
   <meta name="description" content="Stream live TV, movies, and series with EPG support">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="css/main.css?v=5">
+  <link rel="stylesheet" href="css/main.css?v=6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800&display=swap"
@@ -216,6 +216,21 @@
                       </svg>
                     </button>
                     <input type="range" class="watch-volume" id="player-volume" min="0" max="100" value="80">
+
+                    <!-- Quality switcher - only populated for channels grouped from
+                         multiple quality feeds by ChannelQuality.groupVariants() -->
+                    <div class="watch-captions-wrapper" id="player-quality-wrapper" hidden>
+                      <button class="watch-btn" id="player-quality-btn" title="Quality">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
+                          <path
+                            d="M4 6h16v2H4V6zm0 5h10v2H4v-2zm0 5h16v2H4v-2z" />
+                        </svg>
+                      </button>
+                      <div class="watch-captions-menu hidden" id="player-quality-menu">
+                        <div class="captions-menu-title">Quality</div>
+                        <div class="captions-menu-list" id="player-quality-list"></div>
+                      </div>
+                    </div>
 
                     <!-- Captions Button -->
                     <div class="watch-captions-wrapper">
@@ -1104,8 +1119,9 @@
   <!-- JavaScript -->
   <script src="/js/icons.js"></script>
   <script src="/js/api.js?v=2"></script>
-  <script src="/js/components/VideoPlayer.js?v=4"></script>
-  <script src="/js/components/ChannelList.js?v=3"></script>
+  <script src="/js/channelQuality.js?v=2"></script>
+  <script src="/js/components/VideoPlayer.js?v=5"></script>
+  <script src="/js/components/ChannelList.js?v=4"></script>
   <script src="/js/components/SourceManager.js?v=2"></script>
   <script src="/js/components/EpgGuide.js?v=2"></script>
   <script src="/js/pages/HomePage.js?v=2"></script>

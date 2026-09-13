@@ -512,7 +512,7 @@ class ChannelList {
             <img class="channel-logo" src="${this.getProxiedImageUrl(channel.tvgLogo)}" 
                  alt="" onerror="this.onerror=null;this.src='/img/placeholder.png'">
             <div class="channel-info">
-              <div class="channel-name">${this.escapeHtml(channel.name)}</div>
+              <div class="channel-name">${this.escapeHtml(channel.name)}${channel.qualityVariants ? `<span class="channel-quality-tag" title="${channel.qualityVariants.length} kwaliteiten beschikbaar">${this.escapeHtml(channel.qualityVariants[0].label)}</span>` : ''}</div>
               <div class="channel-program">${this.escapeHtml(this.getProgramInfo(channel) || '')}</div>
             </div>
             <button class="favorite-btn ${isFavorite ? 'active' : ''}" title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}">
@@ -625,7 +625,7 @@ class ChannelList {
             <img class="channel-logo" src="${this.getProxiedImageUrl(channel.tvgLogo)}" 
                  alt="" onerror="this.onerror=null;this.src='/img/placeholder.png'">
             <div class="channel-info">
-              <div class="channel-name">${this.escapeHtml(channel.name)}</div>
+              <div class="channel-name">${this.escapeHtml(channel.name)}${channel.qualityVariants ? `<span class="channel-quality-tag" title="${channel.qualityVariants.length} kwaliteiten beschikbaar">${this.escapeHtml(channel.qualityVariants[0].label)}</span>` : ''}</div>
               <div class="channel-program">${this.escapeHtml(this.getProgramInfo(channel) || '')}</div>
             </div>
             <button class="favorite-btn ${isFavorite ? 'active' : ''}" title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}">
@@ -807,7 +807,7 @@ class ChannelList {
             sourceType: 'xtream'
         }));
 
-        this.channels = this.channels.concat(channelList);
+        this.channels = this.channels.concat(ChannelQuality.groupVariants(channelList));
     }
 
     /**
@@ -848,7 +848,7 @@ class ChannelList {
             sourceType: 'm3u'
         }));
 
-        this.channels = this.channels.concat(channelList);
+        this.channels = this.channels.concat(ChannelQuality.groupVariants(channelList));
     }
 
     /**
@@ -1043,7 +1043,7 @@ class ChannelList {
             <img class="channel-logo" src="${this.getProxiedImageUrl(channel.tvgLogo)}" 
                  alt="" onerror="this.onerror=null;this.src='/img/placeholder.png'">
             <div class="channel-info">
-              <div class="channel-name">${this.escapeHtml(channel.name)}</div>
+              <div class="channel-name">${this.escapeHtml(channel.name)}${channel.qualityVariants ? `<span class="channel-quality-tag" title="${channel.qualityVariants.length} kwaliteiten beschikbaar">${this.escapeHtml(channel.qualityVariants[0].label)}</span>` : ''}</div>
               <div class="channel-program">${this.getProgramInfo(channel) || ''}</div>
             </div>
             <button class="favorite-btn active" title="Remove from Favorites">
