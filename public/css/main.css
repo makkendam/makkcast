@@ -60,7 +60,11 @@
   --transition-slow: 350ms ease;
 
   /* Layout */
-  --navbar-height: 60px;
+  /* Base height of the navbar bar itself; --navbar-height adds the top safe
+     area so every `calc(100vh - var(--navbar-height))` stays correct on
+     notched devices in standalone (home screen) mode. */
+  --navbar-height-base: 60px;
+  --navbar-height: calc(var(--navbar-height-base) + var(--safe-area-inset-top));
   --sidebar-width: 320px;
   --epg-sidebar-width: 250px;
 
@@ -165,6 +169,7 @@ h4 {
   justify-content: space-between;
   height: var(--navbar-height);
   padding: 0 var(--space-lg);
+  padding-top: var(--safe-area-inset-top);
   padding-left: max(var(--space-lg), var(--safe-area-inset-left));
   padding-right: max(var(--space-lg), var(--safe-area-inset-right));
   background: var(--glass-bg);
@@ -1973,7 +1978,7 @@ kbd {
 
   /* Tablet/Mobile landscape */
   :root {
-    --navbar-height: 56px;
+    --navbar-height-base: 56px;
     --sidebar-width: 320px;
     --space-lg: 16px;
     --space-xl: 24px;
@@ -2228,7 +2233,7 @@ kbd {
 
   /* Mobile portrait - phones */
   :root {
-    --navbar-height: 52px;
+    --navbar-height-base: 52px;
     --space-md: 12px;
     --space-lg: 16px;
     --space-xl: 20px;
@@ -2241,7 +2246,8 @@ kbd {
   /* Navigation - Compact with hamburger menu */
   .navbar {
     padding: 0 var(--space-sm);
-    height: 52px;
+    padding-top: var(--safe-area-inset-top);
+    height: var(--navbar-height);
   }
 
   .logo {
@@ -2260,7 +2266,7 @@ kbd {
   /* Mobile dropdown menu */
   .navbar-menu {
     position: fixed;
-    top: 52px;
+    top: var(--navbar-height);
     left: 0;
     right: 0;
     flex-direction: column;
@@ -2640,11 +2646,11 @@ kbd {
 
   /* Extra small phones */
   :root {
-    --navbar-height: 48px;
+    --navbar-height-base: 48px;
   }
 
   .navbar {
-    height: 48px;
+    height: var(--navbar-height);
   }
 
   .brand-text {
