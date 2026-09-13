@@ -1013,6 +1013,95 @@ video::cue {
   padding-top: calc(var(--space-lg) + env(safe-area-inset-top, 0px));
 }
 
+/* Floating mini-player - docks the actual <video> element here when the
+   user navigates away from Live TV / Watch while something is playing, so
+   playback stays visible instead of just continuing as invisible audio. */
+.mini-player {
+  position: fixed;
+  right: max(var(--space-md), env(safe-area-inset-right, 0px));
+  bottom: max(var(--space-md), calc(env(safe-area-inset-bottom, 0px) + var(--space-md)));
+  width: 260px;
+  max-width: calc(45vw - var(--space-md));
+  background: #000;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 900;
+  /* below modals/menus, above page content */
+}
+
+.mini-player[hidden] {
+  display: none;
+}
+
+.mini-player-video-slot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  cursor: pointer;
+}
+
+.mini-player-video-slot video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+.mini-player-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(20, 20, 20, 0.95);
+}
+
+.mini-player-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-player-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  padding: var(--space-xs);
+  cursor: pointer;
+  display: flex;
+  line-height: 0;
+  opacity: 0.85;
+}
+
+.mini-player-btn:hover {
+  opacity: 1;
+}
+
+.mini-player-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.mini-player.paused .icon-play {
+  display: none;
+}
+
+.mini-player:not(.paused) .icon-pause {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .mini-player {
+    width: 45vw;
+  }
+}
+
 .channel-nav {
   display: flex;
   flex-direction: column;

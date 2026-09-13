@@ -10,7 +10,7 @@
   <title>nodecast-tv | IPTV Player</title>
   <meta name="description" content="Stream live TV, movies, and series with EPG support">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="css/main.css?v=7">
+  <link rel="stylesheet" href="css/main.css?v=8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800&display=swap"
@@ -1038,6 +1038,34 @@
       </div>
 
     </main>
+
+    <!-- Floating mini-player: shows whatever Live TV / Watch playback was
+         doing when you navigate away, instead of it just playing invisibly -->
+    <div class="mini-player" id="mini-player" hidden>
+      <div class="mini-player-video-slot" id="mini-player-video-slot"></div>
+      <div class="mini-player-bar">
+        <span class="mini-player-title" id="mini-player-title"></span>
+        <button class="mini-player-btn" id="mini-player-playpause" title="Play/Pause">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon icon-play">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon icon-pause">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
+        </button>
+        <button class="mini-player-btn" id="mini-player-expand" title="Expand">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+          </svg>
+        </button>
+        <button class="mini-player-btn" id="mini-player-close" title="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon">
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Template -->
@@ -1131,7 +1159,7 @@
   <script src="/js/pages/SeriesPage.js?v=1"></script>
   <script src="/js/pages/Settings.js?v=2"></script>
   <script src="/js/pages/WatchPage.js?v=3"></script>
-  <script src="/js/app.js?v=5"></script>
+  <script src="/js/app.js?v=6"></script>
   <script>
     // Check for SSO token in URL
     (function () {

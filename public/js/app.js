@@ -7,6 +7,7 @@ class App {
         this.currentPage = 'home';
         this.pages = {};
         this.currentUser = null;
+        this.miniPlayer = { active: false, type: null, video: null, originalParent: null, originalNextSibling: null };
 
         // Initialize components
         this.player = new VideoPlayer();
@@ -173,6 +174,8 @@ class App {
             });
         }
 
+        this.setupMiniPlayer();
+
         // Navigation handling
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -332,6 +335,17 @@ class App {
             page.classList.toggle('active', page.id === `page-${pageName}`);
         });
 
+        // Leaving Live TV or Watch while something is playing: float it into the
+        // mini-player instead of leaving it playing invisibly behind a hidden page
+        if ((this.currentPage === 'live' || this.currentPage === 'watch') && this.currentPage !== pageName) {
+            this.minimizePlayer(this.currentPage);
+        }
+
+        // Coming back to the page whose player is currently floating: dock it back inline
+        if (this.miniPlayer.active && this.miniPlayer.type === pageName) {
+            this.restoreMiniPlayer();
+        }
+
         // Notify page controllers
         if (this.pages[this.currentPage]?.hide) {
             this.pages[this.currentPage].hide();
@@ -342,6 +356,107 @@ class App {
         if (this.pages[pageName]?.show) {
             this.pages[pageName].show();
         }
+    }
+
+    setupMiniPlayer() {
+        const box = document.getElementById('mini-player');
+        const slot = document.getElementById('mini-player-video-slot');
+        if (!box || !slot) return;
+
+        const goToSource = () => {
+            if (this.miniPlayer.active) this.navigateTo(this.miniPlayer.type);
+        };
+
+        slot.addEventListener('click', goToSource);
+        document.getElementById('mini-player-expand').addEventListener('click', (e) => {
+            e.stopPropagation();
+            goToSource();
+        });
+
+        document.getElementById('mini-player-playpause').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const video = this.miniPlayer.video;
+            if (!video) return;
+            if (video.paused) video.play().catch(() => { });
+            else video.pause();
+        });
+
+        document.getElementById('mini-player-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closeMiniPlayer();
+        });
+
+        // Keep the play/pause icon in sync regardless of what caused the change
+        // (mini-player button, the page it came from, autoplay, network stalls, ...)
+        [this.player?.video, this.pages.watch?.video].forEach(video => {
+            if (!video) return;
+            ['play', 'pause'].forEach(evt => {
+                video.addEventListener(evt, () => {
+                    if (this.miniPlayer.active && this.miniPlayer.video === video) {
+                        this.updateMiniPlayerIcon();
+                    }
+                });
+            });
+        });
+    }
+
+    /**
+     * Move the given page's <video> element into the floating mini-player,
+     * leaving its original spot (now hidden) empty. No-ops if nothing is loaded.
+     */
+    minimizePlayer(type) {
+        const video = type === 'live' ? this.player?.video : this.pages.watch?.video;
+        if (!video || !video.currentSrc || video.ended) return;
+
+        // Only one mini-player slot exists - drop the other type first if present
+        if (this.miniPlayer.active && this.miniPlayer.type !== type) {
+            this.closeMiniPlayer();
+        }
+
+        this.miniPlayer = {
+            active: true,
+            type,
+            video,
+            originalParent: video.parentNode,
+            originalNextSibling: video.nextSibling,
+        };
+
+        document.getElementById('mini-player-video-slot').appendChild(video);
+
+        const titleSource = type === 'live'
+            ? document.getElementById('player-channel-name')
+            : document.getElementById('watch-title');
+        document.getElementById('mini-player-title').textContent = titleSource?.textContent || '';
+
+        document.getElementById('mini-player').hidden = false;
+        this.updateMiniPlayerIcon();
+    }
+
+    /** Move the floating video back to where it came from (its page is visible again). */
+    restoreMiniPlayer() {
+        const mp = this.miniPlayer;
+        if (!mp.active) return;
+
+        if (mp.originalNextSibling) {
+            mp.originalParent.insertBefore(mp.video, mp.originalNextSibling);
+        } else {
+            mp.originalParent.appendChild(mp.video);
+        }
+
+        document.getElementById('mini-player').hidden = true;
+        this.miniPlayer = { active: false, type: null, video: null, originalParent: null, originalNextSibling: null };
+    }
+
+    /** Stop playback and dock the video back home, without navigating to it. */
+    closeMiniPlayer() {
+        this.miniPlayer.video?.pause();
+        this.restoreMiniPlayer();
+    }
+
+    updateMiniPlayerIcon() {
+        const mp = this.miniPlayer;
+        if (!mp.active) return;
+        document.getElementById('mini-player').classList.toggle('paused', mp.video.paused);
     }
 }
 
