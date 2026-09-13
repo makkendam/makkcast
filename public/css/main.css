@@ -121,11 +121,18 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  /* fallback */
+  /* fallback for browsers without dvh */
   height: 100dvh;
-  /* dynamic viewport height for modern browsers */
-  height: -webkit-fill-available;
-  /* iOS Safari fallback */
+  /* dynamic viewport height; handles mobile toolbars */
+
+  /* NOTE: do not add `height: -webkit-fill-available` here. It is valid only
+     in WebKit, so it would win over 100dvh on Safari, where it resolves like
+     `auto` in this nesting - #app then grows to its content (the full channel
+     list, ~9000px) instead of the viewport. Every descendant inherits that via
+     `height: 100%`, which pushes the vertically centred video out of view
+     (black picture with working audio) and leaves .channel-list with nothing
+     to scroll. Desktop Chrome/Firefox never saw it because the property is
+     invalid there; iPhone escaped it because its sidebar is position:fixed. */
 }
 
 /* Typography */
