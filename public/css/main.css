@@ -945,7 +945,14 @@ video::cue {
 /* Now Playing Overlay */
 .now-playing-overlay {
   position: absolute;
-  bottom: 60px;
+  /* Sits just above the control bar, whatever its actual rendered height is
+     (button size/padding/safe-area differ per breakpoint and fullscreen
+     state) - VideoPlayer.js measures .watch-bottom-bar and keeps
+     --player-bottom-bar-height current. Previously this was a fixed
+     px value guessed per breakpoint, and every guess undershot enough to
+     let this panel cover the controls (worst on the smallest screens,
+     where it dropped as low as 10px against a bar close to 100px tall). */
+  bottom: calc(var(--player-bottom-bar-height, 100px) + var(--space-sm));
   left: var(--space-lg);
   right: var(--space-lg);
   display: flex;
@@ -969,13 +976,6 @@ video::cue {
   pointer-events: none;
 }
 
-/* iOS safe area for now playing overlay */
-@supports (bottom: env(safe-area-inset-bottom)) {
-  .now-playing-overlay {
-    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
 /* Fullscreen mode for video container */
 .video-container:fullscreen {
   width: 100%;
@@ -989,10 +989,6 @@ video::cue {
   object-fit: contain;
 }
 
-.video-container:fullscreen .now-playing-overlay {
-  bottom: 80px;
-}
-
 /* Safari fullscreen support (required for iOS) */
 .video-container:-webkit-full-screen {
   width: 100%;
@@ -1004,10 +1000,6 @@ video::cue {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.video-container:-webkit-full-screen .now-playing-overlay {
-  bottom: 80px;
 }
 
 /* Fullscreen safe area for controls - especially for iOS */
@@ -2164,7 +2156,6 @@ kbd {
   /* Now Playing Overlay - Stack vertically */
   .now-playing-overlay {
     flex-direction: column;
-    bottom: 40px;
     left: var(--space-md);
     right: var(--space-md);
     padding: var(--space-md);
@@ -2428,7 +2419,6 @@ kbd {
   /* Now Playing Overlay - Compact */
   .now-playing-overlay {
     padding: var(--space-sm);
-    bottom: 20px;
     left: var(--space-sm);
     right: var(--space-sm);
   }
@@ -2772,7 +2762,6 @@ kbd {
   }
 
   .now-playing-overlay {
-    bottom: 10px;
     padding: var(--space-xs) var(--space-sm);
   }
 

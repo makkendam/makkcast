@@ -196,6 +196,23 @@ class VideoPlayer {
             window.addEventListener('resize', updateIosUiBottom);
         }
 
+        // Keep .now-playing-overlay positioned just above the control bar.
+        // Its rendered height varies by breakpoint, fullscreen state and
+        // safe-area insets, so this measures it directly instead of trying
+        // to keep a hardcoded guess in sync with all of those.
+        const bottomBar = this.controlsOverlay?.querySelector('.watch-bottom-bar');
+        const updateBottomBarHeight = () => {
+            if (bottomBar) {
+                document.documentElement.style.setProperty(
+                    '--player-bottom-bar-height', `${bottomBar.getBoundingClientRect().height}px`
+                );
+            }
+        };
+        updateBottomBarHeight();
+        window.addEventListener('resize', updateBottomBarHeight);
+        document.addEventListener('fullscreenchange', updateBottomBarHeight);
+        document.addEventListener('webkitfullscreenchange', updateBottomBarHeight);
+
         // iOS: use custom --vh unit to avoid 100vh issues with dynamic toolbar
         const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
         if (isIOS && this.container) {
