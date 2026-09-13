@@ -200,18 +200,26 @@ class VideoPlayer {
         // Its rendered height varies by breakpoint, fullscreen state and
         // safe-area insets, so this measures it directly instead of trying
         // to keep a hardcoded guess in sync with all of those.
+        //
+        // A ResizeObserver (not resize/fullscreenchange listeners) is
+        // required here: initCustomControls() runs at app startup, while the
+        // Live TV page is still `display: none` (Home is the default active
+        // page) - .watch-bottom-bar measures 0 at that instant, and nothing
+        // as plain as a window resize event fires when the user later
+        // navigates to Live TV, so a one-shot measurement stays stuck at
+        // 0px. ResizeObserver instead fires whenever the element's actual
+        // rendered size changes, including that display:none -> visible
+        // transition, so it self-corrects regardless of what caused it.
         const bottomBar = this.controlsOverlay?.querySelector('.watch-bottom-bar');
-        const updateBottomBarHeight = () => {
-            if (bottomBar) {
+        if (bottomBar) {
+            const updateBottomBarHeight = () => {
                 document.documentElement.style.setProperty(
                     '--player-bottom-bar-height', `${bottomBar.getBoundingClientRect().height}px`
                 );
-            }
-        };
-        updateBottomBarHeight();
-        window.addEventListener('resize', updateBottomBarHeight);
-        document.addEventListener('fullscreenchange', updateBottomBarHeight);
-        document.addEventListener('webkitfullscreenchange', updateBottomBarHeight);
+            };
+            updateBottomBarHeight();
+            new ResizeObserver(updateBottomBarHeight).observe(bottomBar);
+        }
 
         // iOS: use custom --vh unit to avoid 100vh issues with dynamic toolbar
         const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
