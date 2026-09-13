@@ -8,6 +8,24 @@ function isMobile() {
     return /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
+/**
+ * Should we hand HLS to Safari's native player instead of HLS.js?
+ *
+ * Safari's native HLS player decodes codecs its MSE implementation rejects
+ * (HEVC, AC3/EAC3). On iPadOS/macOS Safari, MSE exists, so Hls.isSupported()
+ * returns true and HLS.js wins the branch below - it then feeds MSE a video
+ * track Safari won't decode, so audio plays while the picture stays black.
+ * iPhone Safari has no MSE, which is why it never hit this.
+ *
+ * Chrome/Firefox report "maybe" for m3u8 on some platforms but play it badly,
+ * so this is deliberately limited to Safari.
+ */
+function prefersNativeHls(video) {
+    if (!video || typeof video.canPlayType !== 'function') return false;
+    if (!video.canPlayType('application/vnd.apple.mpegurl')) return false;
+    return /^((?!chrome|chromium|android|crios|fxios|edgios|edg).)*safari/i.test(navigator.userAgent);
+}
+
 class VideoPlayer {
     constructor() {
         this.video = document.getElementById('video-player');
@@ -1080,8 +1098,9 @@ class VideoPlayer {
                 return;
             }
 
-            // Priority 1: Use HLS.js for HLS streams on browsers that support it
-            if (looksLikeHls && Hls.isSupported()) {
+            // Priority 1: Use HLS.js for HLS streams on browsers that support it,
+            // except on Safari where the native player handles more codecs
+            if (looksLikeHls && Hls.isSupported() && !prefersNativeHls(this.video)) {
                 this.updateTranscodeStatus('direct', 'Direct HLS');
 
                 // Use playHls helper logic here (or extract it)

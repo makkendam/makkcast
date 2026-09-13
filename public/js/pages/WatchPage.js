@@ -544,10 +544,17 @@ class WatchPage {
 
         console.log('[WatchPage] Playing:', { url, needsProxy, looksLikeHls });
 
-        // Use HLS.js for HLS streams
-        if (looksLikeHls && Hls.isSupported()) {
+        // Use HLS.js for HLS streams, except on Safari where the native player
+        // handles codecs (HEVC, AC3/EAC3) that Safari's MSE rejects
+        if (looksLikeHls && Hls.isSupported() && !prefersNativeHls(this.video)) {
             this.updateTranscodeStatus('direct', 'Direct HLS');
             this.playHls(finalUrl);
+        } else if (looksLikeHls) {
+            this.updateTranscodeStatus('direct', 'Direct Native');
+            this.video.src = finalUrl;
+            this.video.play().catch(e => {
+                if (e.name !== 'AbortError') console.error('[WatchPage] Autoplay error:', e);
+            });
         } else {
             // Direct playback for mp4/mkv/avi
             this.updateTranscodeStatus('direct', 'Direct Play');
