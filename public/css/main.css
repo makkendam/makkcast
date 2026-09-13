@@ -378,11 +378,64 @@ h4 {
 
 /* Sidebar */
 .channel-sidebar {
+  position: relative;
+  /* anchors .sidebar-resize-handle below */
   width: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   background: var(--color-bg-secondary);
   border-right: 1px solid var(--color-border);
+}
+
+/* Drag-to-resize handle for the category sidebar (desktop only, see
+   .sidebar-collapse-btn's breakpoint - a fixed-position mobile drawer has no
+   "wider" to drag to). JS in app.js writes the chosen width to
+   --sidebar-width and persists it in localStorage. */
+.sidebar-resize-handle {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  touch-action: none;
+}
+
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2px;
+  width: 2px;
+  height: 100%;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.sidebar-resize-handle:hover::after,
+.sidebar-resize-handle.dragging::after {
+  background: var(--color-accent);
+}
+
+@media (min-width: 769px) {
+  .sidebar-resize-handle {
+    display: block;
+  }
+}
+
+.channel-sidebar.collapsed .sidebar-resize-handle {
+  display: none;
+}
+
+body.resizing-sidebar {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.resizing-sidebar * {
+  user-select: none;
 }
 
 .sidebar-header {

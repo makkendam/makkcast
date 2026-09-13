@@ -106,6 +106,73 @@ class App {
             homeLayout?.classList.add('sidebar-collapsed');
         }
 
+        // Drag-to-resize the category sidebar (desktop layout only - on mobile
+        // .channel-sidebar becomes a fixed-width drawer, not something to widen)
+        const SIDEBAR_WIDTH_KEY = 'nodecast_tv_sidebar_width';
+        const SIDEBAR_MIN_WIDTH = 220;
+        const SIDEBAR_MAX_WIDTH = 600;
+        const isDesktopLayout = () => window.matchMedia('(min-width: 769px)').matches;
+        const resizeHandle = document.getElementById('sidebar-resize-handle');
+
+        const savedSidebarWidth = parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY), 10);
+        if (isDesktopLayout() && savedSidebarWidth >= SIDEBAR_MIN_WIDTH && savedSidebarWidth <= SIDEBAR_MAX_WIDTH) {
+            document.documentElement.style.setProperty('--sidebar-width', `${savedSidebarWidth}px`);
+        }
+
+        if (resizeHandle && channelSidebar) {
+            let startX = 0;
+            let startWidth = 0;
+
+            const onPointerMove = (e) => {
+                const delta = e.clientX - startX;
+                const maxWidth = Math.min(SIDEBAR_MAX_WIDTH, window.innerWidth - 300);
+                const newWidth = Math.min(maxWidth, Math.max(SIDEBAR_MIN_WIDTH, startWidth + delta));
+                document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+            };
+
+            const onPointerUp = () => {
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                document.body.classList.remove('resizing-sidebar');
+                resizeHandle.classList.remove('dragging');
+
+                const finalWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width'), 10);
+                if (finalWidth) {
+                    localStorage.setItem(SIDEBAR_WIDTH_KEY, finalWidth);
+                }
+            };
+
+            resizeHandle.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                startX = e.clientX;
+                startWidth = channelSidebar.getBoundingClientRect().width;
+                document.body.classList.add('resizing-sidebar');
+                resizeHandle.classList.add('dragging');
+                document.addEventListener('pointermove', onPointerMove);
+                document.addEventListener('pointerup', onPointerUp);
+            });
+
+            // Double-click to reset to the default width
+            resizeHandle.addEventListener('dblclick', () => {
+                document.documentElement.style.removeProperty('--sidebar-width');
+                localStorage.removeItem(SIDEBAR_WIDTH_KEY);
+            });
+
+            // Re-clamp on resize/rotation - a width picked on a wide window
+            // could otherwise crowd out the video once the window narrows
+            window.addEventListener('resize', () => {
+                if (!isDesktopLayout()) {
+                    document.documentElement.style.removeProperty('--sidebar-width');
+                    return;
+                }
+                const current = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width'), 10);
+                const maxWidth = Math.min(SIDEBAR_MAX_WIDTH, window.innerWidth - 300);
+                if (current > maxWidth) {
+                    document.documentElement.style.setProperty('--sidebar-width', `${Math.max(SIDEBAR_MIN_WIDTH, maxWidth)}px`);
+                }
+            });
+        }
+
         // Navigation handling
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
